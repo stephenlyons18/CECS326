@@ -15,7 +15,6 @@
 // returned by your server.
 // Figure 1. Data Server
 
-
 // 3: The Required Deliverable Materials
 // (1) A README file, which describes how we can compile and run your code.
 // (2) Your source code, you may use a Makefile (for C) and be submitted in the required format.
@@ -38,31 +37,66 @@
 // 8) Provide sufficient comments in your code to help the TA understand your code. This is
 // important for you to get at least partial credit in case your submitted code does not work properly.
 
-
-
-
-
-
-// QuoteServer implementation:
+use std::io::{Error, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::thread;
 
-impl QuoteServer{
-    pub fn new() -> QuoteServer{
-        // initiate a QuoteServer object and listen to the port
-        QuoteServer{
-            // listen to the port
-            let listener = TcpListener::bind("127.0.0.1:80")?;
-            for stream in listener.incoming() {
-                handle_connection(stream?);
+// create a QuoteServer implementation that will be initialized and used in main.rs
+
+// the quote server will have an array of quotes that will be randomly selected and sent to the client
+// the quote server will also have a listener that will listen for incoming connections
+pub struct QuoteServer {
+    
+    pub listener: TcpListener,
+}
+
+// implement the QuoteServer struct
+impl QuoteServer {
+    // create a list of quotes that will be randomly selected and sent to the client
+    let quotes = ["The best way to predict the future is to invent it. - Alan Kay",
+    "A computer lets you make more mistakes faster than any invention in human history, with the possible exceptions of handguns and tequila. - Mitch Ratcliffe",
+    "The computer was born to solve problems that did not exist before. - Bill Gates",
+    "A computer is like air conditioning: it becomes useless when you open Windows. - Linus Torvalds",
+    "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny...' - Isaac Asimov",
+    "The best way to predict the future is to invent it. - Alan Kay",];
+
+    // create a new QuoteServer
+    pub fn new(listener: TcpListener) -> QuoteServer {
+        QuoteServer { listener }
+        // run the listen function
+        listen();
+    }
+
+    // create a function that will randomly select a quote from the list of quotes
+    pub fn select_quote(&mut self) -> String {
+        let mut rng = rand::thread_rng();
+        let quote = quotes.choose(&mut rng).unwrap();
+        quote.to_string()
+    }
+    // create a function that will send a random quote to the client
+    pub fn send_quote(&mut self) -> Result<String, Error> {
+        let mut buffer = [0; 512];
+        let bytes_read = self.stream.read(&mut buffer)?;
+        let quote = String::from_utf8_lossy(&buffer[..bytes_read]);
+        println!("Quote: {}", quote);
+    }
+
+    // create a function that will listen for incoming connections
+    pub fn listen(&mut self) {
+        for stream in self.listener.incoming() {
+            match stream {
+                Ok(stream) => {
+                    thread::spawn(move || {
+                        let mut quote_server = QuoteServer::new(stream);
+                        quote_server.send_quote();
+                    });
+                }
+                Err(e) => {
+                    println!("Error: {}", e);
+                }
             }
         }
-        
     }
-    fn handle_connection(stream: TcpStream) {
-        let mut buffer = [0; 512];
-        stream.read(&mut buffer).unwrap();
-        println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
-    }
-    
+
 
 }

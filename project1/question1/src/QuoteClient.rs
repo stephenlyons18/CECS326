@@ -14,22 +14,27 @@
 // unavailable, have your server listen to port 6017. The date client can be used to read the quotes
 // returned by your server.
 // Figure 1. Data Server
+use std::io::{Error, Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::thread;
 
+// create a QuoteClient implementation that will be initialized and used in main.rs
+pub struct QuoteClient {
+    pub stream: TcpStream,
+}
 
-impl QuoteClient{
-    pub fn new() -> QuoteClient{
-        // initiate a QuoteClient object and connect to the server
-        QuoteClient{
-            // connect to the server
-            TcpStream::connect("")
-        }
-        
+// implement the QuoteClient struct
+impl QuoteClient {
+    // create a new QuoteClient
+    pub fn new(stream: TcpStream) -> QuoteClient {
+        QuoteClient { stream }
     }
-    pub fn run(&self){
-        // run the client
-        // send the request to the server
-        T
-        // receive the response from the server
-        // print the response
+
+    // create a function that will read the quote from the server
+    pub fn read_quote(&mut self) -> Result<String, Error> {
+        let mut buffer = [0; 512];
+        let bytes_read = self.stream.read(&mut buffer)?;
+        let quote = String::from_utf8_lossy(&buffer[..bytes_read]);
+        println!("Quote: {}", quote);
     }
 }

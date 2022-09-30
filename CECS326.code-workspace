@@ -6,7 +6,13 @@
 	],
 	"settings": {
 		"editor.fontSize": 19,
-		"workbench.colorTheme": "SynthWave '84"
+		"workbench.colorTheme": "SynthWave '84",
 		// set the default path to the portfolio folder
+		// rust settings
+		"rust-client.channel": "nightly",
+		"rust-client.rustupPath": "rustup",
+		"rust-client.rustupArgs": ["toolchain", "install", "nightly"],
+		"rust-client.rustupUpdateArgs": ["update", "nightly"],
+		"rust-client.rustupOverridePath": "rustup"
 	}
 }

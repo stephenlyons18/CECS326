@@ -46,24 +46,24 @@ use std::thread;
 // the quote server will have an array of quotes that will be randomly selected and sent to the client
 // the quote server will also have a listener that will listen for incoming connections
 pub struct QuoteServer {
-    
     pub listener: TcpListener,
 }
 
 // implement the QuoteServer struct
 impl QuoteServer {
     // create a list of quotes that will be randomly selected and sent to the client
-    let quotes = ["The best way to predict the future is to invent it. - Alan Kay",
-    "A computer lets you make more mistakes faster than any invention in human history, with the possible exceptions of handguns and tequila. - Mitch Ratcliffe",
-    "The computer was born to solve problems that did not exist before. - Bill Gates",
-    "A computer is like air conditioning: it becomes useless when you open Windows. - Linus Torvalds",
-    "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny...' - Isaac Asimov",
-    "The best way to predict the future is to invent it. - Alan Kay",];
 
     // create a new QuoteServer
     pub fn new(listener: TcpListener) -> QuoteServer {
-        QuoteServer { listener }
+        QuoteServer { listener };
         // run the listen function
+        let quotes = vec![
+        "You miss 100% of the shots you don't take. - Wayne Gretzky",
+        "You only live once, but if you do it right, once is enough. - Mae West",
+        "Be the change that you wish to see in the world. - Mahatma Gandhi",
+        "In three words I can sum up everything I've learned about life: it goes on. - Robert Frost",
+        "If you tell the truth, you don't have to remember anything. - Mark Twain"
+    ];
         listen();
     }
 
@@ -97,6 +97,4 @@ impl QuoteServer {
             }
         }
     }
-
-
 }

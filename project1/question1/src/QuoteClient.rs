@@ -19,22 +19,21 @@ use std::net::{TcpListener, TcpStream};
 use std::thread;
 
 // create a QuoteClient implementation that will be initialized and used in main.rs
-pub struct QuoteClient {
-    pub stream: TcpStream,
-}
-
-// implement the QuoteClient struct
 impl QuoteClient {
     // create a new QuoteClient
     pub fn new(stream: TcpStream) -> QuoteClient {
         QuoteClient { stream }
     }
 
-    // create a function that will read the quote from the server
-    pub fn read_quote(&mut self) -> Result<String, Error> {
+    // read the quote from the QuoteServer
+    pub fn read_quote(&mut self) {
         let mut buffer = [0; 512];
-        let bytes_read = self.stream.read(&mut buffer)?;
-        let quote = String::from_utf8_lossy(&buffer[..bytes_read]);
-        println!("Quote: {}", quote);
+        match self.stream.read(&mut buffer) {
+            Ok(_) => {
+                let quote = String::from_utf8_lossy(&buffer[..]);
+                println!("Quote: {}", quote);
+            }
+            Err(e) => println!("Failed to read from stream: {}", e),
+        }
     }
 }

@@ -93,47 +93,95 @@ use std::time::Duration;
 // import rand
 use rand::Rng;
 
-fn main() {
-    // create a channel
-    let (tx, rx) = mpsc::channel();
-    // create handles and forks which are used to store the thread handles and forks
-    let mut handles = vec![];
-    let mut forks = vec![];
-    // iterate 5 times to create 5 philosophers
-    for i in 0..5 {
-        forks.push(Arc::new(Mutex::new(i)));
-    }
-    // iterate 5 times to for each philosopher
-    for i in 0..5 {
-        // create a clone of the channel
-        let tx = tx.clone();
-        // create a clone of the forks
+struct Philosopher {
+    name: String,
+    left: usize,
+    right: usize,
+}
+struct DiningServer {
+    forks: Vec<Mutex<()>>,
+}
 
-        let left_fork = forks[i].clone();
-        let right_fork = forks[(i + 1) % 5].clone();
-        // create a thread
-        let handle = thread::spawn(move || loop {
-            // create a random number between 1 and 3 to simulate thinking
-            thread::sleep(Duration::from_secs(rand::random::<u64>() % 3 + 1));
-            // send the philosopher number to the channel to indicate that the philosopher is hungry
-            let _left_fork = left_fork.lock().unwrap();
-            let _right_fork = right_fork.lock().unwrap();
-            // indicate that the philosopher is eating by sending the philosopher number to the channel
-            tx.send(format!("Philosopher {} is eating", i)).unwrap();
-            // create a random number between 1 and 3 to simulate eating
-            thread::sleep(Duration::from_secs(rand::random::<u64>() % 3 + 1));
-            // indicate that the philosopher is thinking by sending the philosopher number to the channel
-            tx.send(format!("Philosopher {} is thinking", i)).unwrap();
-        });
-        // push the thread handle to the handles vector
-        handles.push(handle);
+impl DiningServer {
+    fn new() -> DiningServer {
+        DiningServer {
+            forks: vec![
+                Mutex::new(()),
+                Mutex::new(()),
+                Mutex::new(()),
+                Mutex::new(()),
+                Mutex::new(()),
+            ],
+        }
     }
-    // for all the messages received from the channel, print the message
-    for received in rx {
-        println!("{}", received);
+    fn take_forks(&self, philosopher_number: usize) {
+        let left = philosopher_number;
+        let right = (philosopher_number + 1) % 5;
+        let _left = self.forks[left].lock().unwrap();
+        let _right = self.forks[right].lock().unwrap();
     }
-    // for all the handles, join the thread
-    for handle in handles {
-        handle.join().unwrap();
+    fn return_forks(&self, philosopher_number: usize) {
+        let left = philosopher_number;
+        let right = (philosopher_number + 1) % 5;
+        let _left = self.forks[left].lock().unwrap();
+        let _right = self.forks[right].lock().unwrap();
+    }
+}
+impl Copy for DiningServer {}
+impl Philosopher {
+    fn new(name: &str, left: usize, right: usize) -> Philosopher {
+        Philosopher {
+            name: name.to_string(),
+            left: left,
+            right: right,
+        }
+    }
+    fn eat(&self, table: &DiningServer) {
+        let left = self.left;
+        let right = self.right;
+        table.take_forks(left);
+        println!("{} is eating.", self.name);
+        thread::sleep(Duration::from_millis(1000));
+        table.return_forks(right);
+        println!("{} is done eating.", self.name);
+    }
+    fn think(&self) {
+        println!("{} is thinking.", self.name);
+        thread::sleep(Duration::from_millis(1000));
+    }
+    fn run(&self, table: &DiningServer) {
+        loop {
+            self.think();
+            self.eat(table);
+        }
+    }
+}
+
+fn main() {
+    // initialize the dining server
+    let table = DiningServer::new();
+    // initialize the philosophers
+    let philosophers = vec![
+        Philosopher::new("Judith Butler", 0, 1),
+        Philosopher::new("Gilles Deleuze", 1, 2),
+        Philosopher::new("Karl Marx", 2, 3),
+        Philosopher::new("Emma Goldman", 3, 4),
+        Philosopher::new("Michel Foucault", 0, 4),
+    ];
+    // initialize the threads for each philosopher because they are independent
+    let handles: Vec<_> = philosophers
+        //
+        .into_iter()
+        //using .clone() to make a copy of the table
+        .map(|p| {
+            thread::spawn(move || {
+                p.run(&table);
+            })
+        })
+        .collect();
+
+    // join the threads to the main thread to ensure they finish before main ends
+    for h in handles {
+        h.join().unwrap();
     }
 }

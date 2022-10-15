@@ -7,7 +7,7 @@
 
 ## To run the project
 
-1. `cd` into the project directory
-2. cargo run
+1. `cd` into the project directory `project2rust`
+2. `cargo run`
 or
 3. Run the executable in the target directory (project2rust\target\debug\project2rust.exe)

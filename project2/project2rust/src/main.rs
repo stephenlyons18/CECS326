@@ -86,7 +86,6 @@
 // 2) Code-level discussion is prohibited. We will use anti-plagiarism tools to detect violations of
 // this policy.
 
-use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -97,22 +96,57 @@ struct Philosopher {
     name: String,
     left: usize,
     right: usize,
+    index: usize,
 }
+impl Philosopher {
+    fn new(name: &str, left: usize, right: usize, index: usize) -> Philosopher {
+        Philosopher {
+            name: name.to_string(),
+            left: left,
+            right: right,
+            index: index,
+        }
+    }
+    pub fn eat(&self, table: &DiningServer) {
+        table.take_forks(self.index);
+
+        // sleep for a random period between one and three seconds
+        let mut sleep_time = rand::thread_rng().gen_range(1..4);
+        thread::sleep(Duration::from_secs(sleep_time));
+
+        table.return_forks(self.index);
+        println!(
+            "Philosopher #{} took {} seconds to eat",
+            self.index, sleep_time
+        );
+        self.think(&table);
+    }
+    pub fn think(&self, table: &DiningServer) {
+        // sleep for a random period between one and three seconds
+        let mut sleep_time = rand::thread_rng().gen_range(1..4);
+        thread::sleep(Duration::from_secs(sleep_time));
+        println!(
+            "Philosopher #{} took {} seconds to think",
+            self.index, sleep_time
+        );
+        // call eat
+        self.eat(&table);
+    }
+}
+
 struct DiningServer {
     forks: Vec<Mutex<()>>,
 }
-
 impl DiningServer {
     fn new() -> DiningServer {
-        DiningServer {
-            forks: vec![
-                Mutex::new(()),
-                Mutex::new(()),
-                Mutex::new(()),
-                Mutex::new(()),
-                Mutex::new(()),
-            ],
-        }
+        let forks = vec![
+            Mutex::new(()),
+            Mutex::new(()),
+            Mutex::new(()),
+            Mutex::new(()),
+            Mutex::new(()),
+        ];
+        DiningServer { forks }
     }
     fn take_forks(&self, philosopher_number: usize) {
         let left = philosopher_number;
@@ -123,64 +157,37 @@ impl DiningServer {
     fn return_forks(&self, philosopher_number: usize) {
         let left = philosopher_number;
         let right = (philosopher_number + 1) % 5;
-        let _left = self.forks[left].lock().unwrap();
-        let _right = self.forks[right].lock().unwrap();
-    }
-}
-impl Copy for DiningServer {}
-impl Philosopher {
-    fn new(name: &str, left: usize, right: usize) -> Philosopher {
-        Philosopher {
-            name: name.to_string(),
-            left: left,
-            right: right,
-        }
-    }
-    fn eat(&self, table: &DiningServer) {
-        let left = self.left;
-        let right = self.right;
-        table.take_forks(left);
-        println!("{} is eating.", self.name);
-        thread::sleep(Duration::from_millis(1000));
-        table.return_forks(right);
-        println!("{} is done eating.", self.name);
-    }
-    fn think(&self) {
-        println!("{} is thinking.", self.name);
-        thread::sleep(Duration::from_millis(1000));
-    }
-    fn run(&self, table: &DiningServer) {
-        loop {
-            self.think();
-            self.eat(table);
-        }
+        drop(self.forks[left].lock().unwrap());
+        drop(self.forks[right].lock().unwrap());
     }
 }
 
 fn main() {
-    // initialize the dining server
-    let table = DiningServer::new();
-    // initialize the philosophers
+    let table = Arc::new(DiningServer {
+        forks: vec![
+            Mutex::new(()),
+            Mutex::new(()),
+            Mutex::new(()),
+            Mutex::new(()),
+            Mutex::new(()),
+        ],
+    });
     let philosophers = vec![
-        Philosopher::new("Judith Butler", 0, 1),
-        Philosopher::new("Gilles Deleuze", 1, 2),
-        Philosopher::new("Karl Marx", 2, 3),
-        Philosopher::new("Emma Goldman", 3, 4),
-        Philosopher::new("Michel Foucault", 0, 4),
+        Philosopher::new("Judith Butler", 0, 1, 0),
+        Philosopher::new("Gilles Deleuze", 1, 2, 1),
+        Philosopher::new("Karl Marx", 2, 3, 2),
+        Philosopher::new("Emma Goldman", 3, 4, 3),
+        Philosopher::new("Michel Foucault", 0, 4, 4),
     ];
-    // initialize the threads for each philosopher because they are independent
     let handles: Vec<_> = philosophers
-        //
         .into_iter()
-        //using .clone() to make a copy of the table
         .map(|p| {
+            let table = table.clone();
             thread::spawn(move || {
-                p.run(&table);
+                p.eat(&table);
             })
         })
         .collect();
-
-    // join the threads to the main thread to ensure they finish before main ends
     for h in handles {
         h.join().unwrap();
     }

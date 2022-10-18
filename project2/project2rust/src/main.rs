@@ -23,12 +23,13 @@ impl Philosopher {
     }
     // function to eat which will call the take_forks and return_forks functions
     pub fn eat(&self, table: &DiningServer) {
-        table.take_forks(self.index);
         // sleep for a random period between one and three seconds
-        let mut sleep_time = rand::thread_rng().gen_range(1..4);
+        let sleep_time = rand::thread_rng().gen_range(0..4);
         thread::sleep(Duration::from_secs(sleep_time));
+
+        table.take_forks(self);
         // return forks after eating so other philosophers can eat
-        table.return_forks(self.index);
+        table.return_forks(self);
         println!(
             "Philosopher #{} took {} seconds to eat",
             self.index, sleep_time
@@ -39,7 +40,7 @@ impl Philosopher {
     // function to think which will only wait for a random period between one and three seconds and print
     pub fn think(&self, table: &DiningServer) {
         // sleep for a random period between one and three seconds
-        let mut sleep_time = rand::thread_rng().gen_range(1..4);
+        let sleep_time = rand::thread_rng().gen_range(1..4);
         thread::sleep(Duration::from_secs(sleep_time));
         println!(
             "Philosopher #{} took {} seconds to think",
@@ -67,46 +68,56 @@ impl DiningServer {
         DiningServer { forks }
     }
     // function to take forks which will lock the mutexes for the left and right forks
-    fn take_forks(&self, philosopher_number: usize) {
-        let left = philosopher_number;
-        let right = (philosopher_number + 1) % 5;
-        let _left = self.forks[left].lock().unwrap();
-
-        // for some reason, these print statements break the code
-        // println!("Fork #{} is locked by Philosopher #{}", left, philosopher_number);
-        let _right = self.forks[right].lock().unwrap();
-
-        // same as above, not sure why this breaks the code and causes a deadlock
-        // println!("Fork #{} is locked by Philosopher #{}", right, philosopher_number);
-        println!("Philosopher #{} took forks", philosopher_number);
+    fn take_forks(&self, philosopher: &Philosopher) {
+        // bitwise AND operator to check if the index of the philosopher is even or odd
+        if philosopher.index & 1 == 0 {
+            // if the index is even, lock the left fork first
+            let _left = self.forks[philosopher.left].lock().unwrap();
+            // then lock the right fork
+            thread::sleep(Duration::from_secs(1));
+            let _right = self.forks[philosopher.right].lock().unwrap();
+            println!(
+                "Fork #{} is locked by Philosopher #{}",
+                philosopher.left, philosopher.index
+            );
+            println!(
+                "Fork #{} is locked by Philosopher #{}",
+                philosopher.right, philosopher.index
+            );
+            println!("Philosopher #{} took forks", philosopher.index);
+        } else {
+            // if the index is odd, lock the right fork first
+            let _right = self.forks[philosopher.right].lock().unwrap();
+            thread::sleep(Duration::from_secs(1));
+            let _left = self.forks[philosopher.left].lock().unwrap();
+            println!(
+                "Fork #{} is locked by Philosopher #{}",
+                philosopher.right, philosopher.index
+            );
+            println!(
+                "Fork #{} is locked by Philosopher #{}",
+                philosopher.left, philosopher.index
+            );
+            println!("Philosopher #{} took forks", philosopher.index);
+        }
     }
     // function to return forks which will unlock the mutexes for the left and right forks
-    fn return_forks(&self, philosopher_number: usize) {
-        let left = philosopher_number;
-        let right = (philosopher_number + 1) % 5;
-        drop(self.forks[left].lock().unwrap());
-        drop(self.forks[right].lock().unwrap());
+    fn return_forks(&self, philosopher: &Philosopher) {
+        drop(self.forks[philosopher.left].lock().unwrap());
+        drop(self.forks[philosopher.right].lock().unwrap());
     }
 }
 
 fn main() {
     // create a new DiningServer with 5 forks which can be locked
-    let table = Arc::new(DiningServer {
-        forks: vec![
-            Mutex::new(()),
-            Mutex::new(()),
-            Mutex::new(()),
-            Mutex::new(()),
-            Mutex::new(()),
-        ],
-    });
+    let table = Arc::new(DiningServer::new());
     // create a vector of philosophers with their names and forks
     let philosophers = vec![
-        Philosopher::new("Judith Butler", 0, 1, 0),
-        Philosopher::new("Gilles Deleuze", 1, 2, 1),
-        Philosopher::new("Karl Marx", 2, 3, 2),
-        Philosopher::new("Emma Goldman", 3, 4, 3),
-        Philosopher::new("Michel Foucault", 0, 4, 4),
+        Philosopher::new("Philosopher 1", 0, 1, 0),
+        Philosopher::new("Philosopher 2", 1, 2, 1),
+        Philosopher::new("Philosopher 3", 2, 3, 2),
+        Philosopher::new("Philosopher 4", 3, 4, 3),
+        Philosopher::new("Philosopher 5", 0, 4, 4),
     ];
     // create a vector of threads to hold the philosophers
     let handles: Vec<_> = philosophers

@@ -113,11 +113,11 @@ fn main() {
     let table = Arc::new(DiningServer::new());
     // create a vector of philosophers with their names and forks
     let philosophers = vec![
-        Philosopher::new("Philosopher 1", 0, 1, 0),
-        Philosopher::new("Philosopher 2", 1, 2, 1),
-        Philosopher::new("Philosopher 3", 2, 3, 2),
-        Philosopher::new("Philosopher 4", 3, 4, 3),
-        Philosopher::new("Philosopher 5", 0, 4, 4),
+        Philosopher::new("Philosopher 0", 0, 1, 0),
+        Philosopher::new("Philosopher 1", 1, 2, 1),
+        Philosopher::new("Philosopher 2", 2, 3, 2),
+        Philosopher::new("Philosopher 3", 3, 4, 3),
+        Philosopher::new("Philosopher 4", 0, 4, 4),
     ];
     // create a vector of threads to hold the philosophers
     let handles: Vec<_> = philosophers

@@ -1,0 +1,1993 @@
+Operating Systems
+Deadlocks
+Hailu Xu
+
+California State University Long Beach
+
+Operating System Concepts – 10th Edition
+
+Silberschatz, Galvin and Gagne ©2018
+
+Deadlocks
+
+
+System Model
+
+
+
+Deadlock Characterization
+
+
+
+Methods for Handling Deadlocks
+
+ Deadlock Prevention
+
+
+Deadlock Avoidance
+
+
+
+Deadlock Detection
+
+
+
+Recovery from Deadlock
+
+2
+
+Objectives
+ To develop a description of deadlocks, which prevent sets of
+
+concurrent processes from completing their tasks
+ To present a number of different methods for preventing or avoiding
+
+deadlocks in a computer system
+
+3
+
+System Model
+ System consists of resources
+ Resource types R1, R2, . . ., Rm
+
+CPU cycles, memory space, I/O devices
+ Each resource type Ri has Wi instances.
+ Each process utilizes a resource as follows:
+
+
+request
+
+
+
+use
+
+
+
+release
+
+Deadlock: every process in a set of processes is waiting
+for an event that can be caused only by another process
+in the set
+
+4
+
+Sample
+ Deadlocks can occur via system calls, locking, etc.
+
+5
+
+Deadlock Characterization
+Deadlock can arise if four conditions hold simultaneously:
+ Mutual exclusion: only one process at a time can use a
+
+resource
+ Hold and wait: a process holding at least one resource is
+
+waiting to acquire additional resources held by other
+processes
+ No preemption: a resource can be released only voluntarily
+
+by the process holding it, after that process has completed
+its task
+ Circular wait: there exists a set {P0, P1, …, Pn} of waiting
+
+processes such that P0 is waiting for a resource that is held
+by P1, P1 is waiting for a resource that is held by P2, …, Pn–1
+is waiting for a resource that is held by Pn, and Pn is waiting
+for a resource that is held by P0.
+
+6
+
+Resource-Allocation Graph
+A set of vertices V and a set of edges E.
+ V is partitioned into two types:
+
+
+P = {P1, P2, …, Pn}, the set consisting of all the processes
+in the system
+
+
+
+R = {R1, R2, …, Rm}, the set consisting of all resource
+types in the system
+
+ request edge – directed edge Pi ® Rj
+ assignment edge – directed edge Rj ® Pi
+
+7
+
+Resource-Allocation Graph (Cont.)
+ Process
+
+ Resource Type with 4 instances
+
+ Pi requests instance of Rj （request edge）
+
+Pi
+Rj
+
+ Pi is holding an instance of Rj（assignment edge）
+
+Pi
+Rj
+
+8
+
+Example of a Resource Allocation Graph
+
+9
+
+Resource Allocation Graph With A Deadlock
+
+10
+
+Graph With A Cycle Sample 2
+Deadlock?
+
+11
+
+Basic Facts
+ If graph contains no cycles Þ no deadlock
+ If graph contains a cycle Þ
+
+
+if only one instance per resource type, then deadlock
+
+
+
+if several instances per resource type, possibility of
+deadlock
+
+12
+
+Methods for Handling Deadlocks
+ Ensure that the system will never enter a deadlock state:
+
+
+Deadlock prevention
+
+
+
+Deadlock avoidance
+
+ Allow the system to enter a deadlock state and then recover
+
+ Ignore the problem and pretend that deadlocks never occur in the
+
+system; used by most operating systems, including UNIX
+
+13
+
+Deadlock Prevention
+Restrain the ways request can be made
+ Mutual Exclusion – not required for sharable resources
+
+(e.g., read-only files); must hold for non-sharable resources
+ Hold and Wait – must guarantee that whenever a process
+
+requests a resource, it does not hold any other resources
+
+
+Require process to request and be allocated all its
+resources before it begins execution, or allow process
+to request resources only when the process has none
+allocated to it.
+
+
+
+Low resource utilization; starvation possible
+
+14
+
+Deadlock Prevention (Cont.)
+ No Preemption –
+
+
+If a process that is holding some resources requests
+another resource that cannot be immediately allocated to
+it, then all resources currently being held are released
+
+
+
+Preempted resources are added to the list of resources
+for which the process is waiting
+
+
+
+Process will be restarted only when it can regain its old
+resources, as well as the new ones that it is requesting
+
+ Circular Wait – impose a total ordering of all resource types,
+
+and require that each process requests resources in an
+increasing order of enumeration
+a thread that wants to use both first_mutex and
+second_mutex at the same time must first
+request first_mutex and then second_mutex.
+
+15
+
+Deadlock Avoidance
+Requires that the system has some additional a priori information
+available
+ Simplest and most useful model requires that each process
+
+declare the maximum number of resources of each type
+that it may need
+ The deadlock-avoidance algorithm dynamically examines
+
+the resource-allocation state to ensure that there can never
+be a circular-wait condition
+ Resource-allocation state is defined by the number of
+
+available and allocated resources, and the maximum
+demands of the processes
+
+16
+
+Safe State
+ When a process requests an available resource, system must
+
+decide if immediate allocation leaves the system in a safe state
+ System is in safe state if there exists a sequence <P1, P2, …, Pn>
+
+of ALL the processes in the systems such that for each Pi, the
+resources that Pi can still request can be satisfied by currently
+available resources + resources held by all the Pj, with j < i
+ That is:
+
+
+If Pi resource needs are not immediately available, then Pi can
+wait until all Pj have finished
+
+
+
+When Pj is finished, Pi can obtain needed resources, execute,
+return allocated resources, and terminate
+
+
+
+When Pi terminates, Pi +1 can obtain its needed resources, and
+so on
+
+17
+
+Basic Facts
+ If a system is in safe state Þ no deadlocks
+ If a system is in unsafe state Þ possibility of deadlock
+ Avoidance Þ ensure that a system will never enter an
+
+unsafe state.
+
+18
+
+Sample
+ A system with 12 resources and three threads, it’s safe or not?
+
+19
+
+Avoidance Algorithms
+ Single instance of a resource type
+
+
+Use a resource-allocation graph
+
+ Multiple instances of a resource type
+
+
+Use the banker’s algorithm
+
+20
+
+Resource-Allocation Graph Scheme
+ Claim edge Pi ® Rj indicated that process Pi may request
+
+resource Rj; represented by a dashed line
+ Claim edge converts to request edge when a process requests
+
+a resource
+ Request edge converted to an assignment edge when the
+
+resource is allocated to the process
+ When a resource is released by a process, assignment edge
+
+reconverts to a claim edge
+ Resources must be claimed a priori in the system
+
+21
+
+Example Applying Resource-Allocation Graph Algorithm
+Initial state
+
+P1 requests R1
+
+P1 assigned R1
+
+R1
+
+R1
+
+R1
+
+P2
+
+P1
+
+P2
+
+P1
+
+R2
+
+P2
+
+P1
+
+R2
+
+R2
+
+P2 requests R2
+
+(if) P2 assigned R2
+
+R1
+
+R1
+P2
+
+P1
+
+P2
+
+P1
+R2
+
+R2
+
+Unsafe state
+22
+
+Banker’s Algorithm
+ Multiple instances per resource
+ Each process must a priori claim maximum use
+ When a process requests a resource it may have to wait
+ When a process gets all its resources it must return them in a
+
+finite amount of time
+
+23
+
+Data Structures for the Banker’s Algorithm
+Let n = number of processes, and m = number of resources types.
+ Available: Vector of length m. If available [j] = k, there are k
+
+instances of resource type Rj available
+ Max: n x m matrix. If Max [i,j] = k, then process Pi may request at
+
+most k instances of resource type Rj
+ Allocation: n x m matrix. If Allocation[i,j] = k then Pi is currently
+
+allocated k instances of Rj
+ Need: n x m matrix. If Need[i,j] = k, then Pi may need k more
+
+instances of Rj to complete its task
+Need [i,j] = Max[i,j] – Allocation [i,j]
+
+24
+
+Safety Algorithm
+1. Let Work and Finish be vectors of length m and n, respectively.
+Initialize:
+
+Work = Available
+Finish [i] = false for i = 0, 1, …, n- 1
+2. Find an i such that both:
+(a) Finish [i] = false
+(b) Needi £ Work
+If no such i exists, go to step 4
+3. Work = Work + Allocationi
+Finish[i] = true
+go to step 2
+4. If Finish [i] == true for all i, then the system is in a safe state
+
+25
+
+Resource-Request Algorithm for Process Pi
+Requesti = request vector for process Pi. If Requesti [j] = k then
+process Pi wants k instances of resource type Rj
+1. If Requesti £ Needi go to step 2. Otherwise, raise error condition,
+since process has exceeded its maximum claim
+
+2. If Requesti £ Available, go to step 3. Otherwise Pi must wait,
+since resources are not available
+3. Pretend to allocate requested resources to Pi by modifying the
+state as follows:
+
+Available = Available – Requesti;
+Allocationi = Allocationi + Requesti;
+Needi = Needi – Requesti;
+ If safe Þ the resources are allocated to Pi
+ If unsafe Þ Pi must wait, and the old resource-allocation state
+is restored
+
+26
+
+Example of Banker’s Algorithm
+ 5 threads T0 through T4;
+
+3 resource types:
+A (10 instances), B (5instances), and C (7 instances)
+ Snapshot at time Ti: matrix Need = Max – Allocation
+
+T1
+T3
+T4
+The system is in a safe state since the
+sequence < T1, T3, T4, T2, T0> satisfies
+safety criteria
+27
+
+T2
+T0
+
+Work
+A B C
+3 3 2
+2 0 0
+5 3 2
+2 1 1
+7 4 3
+0 0 2
+7 4 5
+3 0 2
+10 4 7
+0 1 0
+10 5 7
+
+Deadlock Detection
+ Allow system to enter deadlock state
+ Need:
+
+
+Detection algorithm
+
+
+
+Recovery scheme
+
+28
+
+Single Instance of Each Resource Type
+ Maintain wait-for graph
+
+
+Nodes are processes
+
+
+
+Pi ® Pj if Pi is waiting for Pj
+
+ Periodically invoke an algorithm that searches for a cycle in the
+
+graph. If there is a cycle, there exists a deadlock
+ An algorithm to detect a cycle in a graph requires an order of n2
+
+operations, where n is the number of vertices in the graph
+
+29
+
+Resource-Allocation Graph and Wait-for Graph
+
+Resource-Allocation Graph
+
+30
+
+Corresponding wait-for graph
+
+Several Instances of a Resource Type
+ Available: A vector of length m indicates the number of
+
+available resources of each type
+ Allocation: An n x m matrix defines the number of resources
+
+of each type currently allocated to each process
+ Request: An n x m matrix indicates the current request of
+
+each process. If Request [i][j] = k, then process Pi is
+requesting k more instances of resource type Rj.
+
+31
+
+Detection Algorithm
+1. Let Work and Finish be vectors of length m and n, respectively
+Initialize:
+(a) Work = Available
+(b) For i = 1,2, …, n, if Allocationi ¹ 0, then
+Finish[i] = false; otherwise, Finish[i] = true
+2. Find an index i such that both:
+(a) Finish[i] == false
+(b) Requesti £ Work
+If no such i exists, go to step 4
+3. Work = Work + Allocationi
+Finish[i] = true
+go to step 2
+4. If Finish[i] == false, for some i, 1 £ i £ n, then the system is in
+deadlock state. Moreover, if Finish[i] == false, then Pi is
+deadlocked
+32
+
+Example of Detection Algorithm
+ Five processes P0 through P4; three resource types
+
+A (7 instances), B (2 instances), and C (6 instances)
+
+Request ≤ Work?
+
+ Snapshot at time T0:
+Finished?
+Allocation
+A B C
+P0 0 1 0
+P1 2 0 0
+P2 3 0 3
+P3 2 1 1
+P4 0 0 2
+Sum 7 2 6
+
+Request
+A B C
+0 0 0
+2 0 2
+0 0 0
+1 0 0
+0 0 2
+
+Available
+A B C
+0
+
+0
+
+P0
+
+TRUE
+
+P2
+
+TRUE
+
+P3
+
+TRUE
+
+P1
+
+TRUE
+
+P4
+
+TRUE
+
+0
+
+Work
+A B C
+0 0 0
+0 1 0
+0 1 0
+3 0 3
+3 1 3
+2 1 1
+5 2 4
+2 0 0
+7 2 4
+0 0 2
+7 2 6
+
+ Sequence <P0, P2, P3, P1, P4> will result in Finish[i] = true for all i
+33
+
+Example (Cont.)
+ P2 requests an additional instance of type C
+Allocation
+A B C
+P0 0 1 0
+P1 2 0 0
+P2 3 0 3
+P3 2 1 1
+P4 0 0 2
+Sum 7 2 6
+
+Request
+A B C
+0 0 0
+2 0 2
+0 0 1
+1 0 0
+0 0 2
+
+Finished?
+
+Available
+A B C
+0
+
+0
+
+0
+
+P0
+
+TRUE
+
+P1
+
+FALSE
+
+P2
+
+FALSE
+
+P3
+
+FALSE
+
+P4
+
+FALSE
+
+Work
+A B C
+0 0 0
+0
+
+1
+
+0
+
+0
+
+1
+
+0
+
+ State of system?
+
+
+Can reclaim resources held by process P0, but insufficient
+resources to fulfill other processes; requests
+
+
+
+Deadlock exists, consisting of processes P1, P2, P3, and P4
+34
+
+Complexity of Graph Reduction Algorithm
+ To find the first row in the Request matrix with the request amount ≤
+
+Work, one may need to traverse through all n rows.
+ Comparing a row of the Request matrix with the Work vector, an amount
+
+of computation proportional to m is needed.
+ Therefore, finding the first row that satisfies Request ≤ Work requires up
+
+to an amount of computation proportional to nm, and finding the second
+row requires (n-1)m, and so on.
+Total amount of work (in the worst case)
+= nm+(n-1)m+(n-2)m+…+2m+1m
+=[n+(n-1)+(n-2)+…+2+1]*m
+=[n(n+1)/2]*m
+=O(n^2*m)
+
+35
+
+Recovery from Deadlock: Process Termination
+ Abort all deadlocked processes
+ Abort one process at a time until the deadlock cycle is eliminated
+ In which order should we choose to abort?
+1.
+
+Priority of the process
+
+2.
+
+How long process has computed, and how much longer to
+completion
+
+3.
+
+Resources the process has used
+
+4.
+
+Resources process needs to complete
+
+5.
+
+How many processes will need to be terminated
+
+6.
+
+Is process interactive or batch?
+
+36
+
+Recovery from Deadlock: Resource Preemption
+ Selecting a victim – minimize cost
+ Rollback – return to some safe state, restart process for that
+
+state
+ Starvation – same process may always be picked as victim,
+
+include number of rollback in cost factor
+
+37
+
+
+
+====================================================================
+CECS 326 Operating Systems
+Chapter 5: CPU Scheduling
+Hailu Xu
+
+California State University Long Beach
+
+Operating System Concepts – 10th Edition
+
+Silberschatz, Galvin and Gagne ©2018
+
+CPU Scheduling
+ Basic Concepts
+ Scheduling Criteria
+ Scheduling Algorithms
+ Thread Scheduling
+ Multiple-Processor Scheduling
+
+2
+
+Objectives
+ To introduce CPU scheduling, which is the basis for
+
+multiprogrammed operating systems
+ To describe various CPU-scheduling algorithms
+ To discuss evaluation criteria for selecting a CPU-scheduling
+
+algorithm for a particular system
+
+3
+
+Basic Concepts
+•
+•
+•
+
+ Maximum CPU utilization
+
+obtained with multiprogramming
+ CPU–I/O Burst Cycle – Process
+
+execution consists of a cycle of
+CPU execution and I/O wait
+ CPU burst followed by I/O burst
+ CPU burst distribution is of main
+
+concern
+
+load store
+add store
+read from file
+
+CPU burst
+
+wait for I/O
+
+I/O burst
+
+store increment
+index
+write to file
+
+CPU burst
+
+wait for I/O
+
+I/O burst
+
+load store
+add store
+read from file
+
+CPU burst
+
+wait for I/O
+
+I/O burst
+
+•
+•
+•
+
+4
+
+Histogram of CPU-burst Times
+
+5
+
+CPU Scheduler
+ Short-term scheduler selects from among the processes in
+
+ready queue, and allocates the CPU to one of them
+
+
+Queue may be ordered in various ways
+
+ CPU scheduling decisions may take place when a process:
+1.
+
+Switches from running to waiting state
+
+2.
+
+Switches from running to ready state
+
+3.
+
+Switches from waiting to ready
+
+4.
+
+Terminates
+
+ Scheduling under 1 and 4 is nonpreemptive
+ All other scheduling is preemptive
+
+
+Consider access to shared data
+
+
+
+Consider preemption while in kernel mode
+
+
+
+Consider interrupts occurring during crucial OS activities
+
+6
+
+Scheduling Criteria
+ CPU utilization – keep the CPU as busy as possible
+ Throughput – # of processes that complete their execution per
+
+time unit
+ Turnaround time – amount of time to execute a particular
+
+process
+ Waiting time – amount of time a process has been waiting in the
+
+ready queue
+ Response time – amount of time it takes from when a request
+
+was submitted until the first response is produced, not output (for
+time-sharing environment)
+
+8
+
+Scheduling Algorithm Optimization Criteria
+ Max CPU utilization
+ Max throughput
+ Min turnaround time
+ Min waiting time
+ Min response time
+
+9
+
+1. First- Come, First-Served (FCFS) Scheduling
+Process
+P1
+
+Burst Time
+24
+
+P2
+P3
+
+3
+3
+
+ Suppose that the processes arrive in the order: P1 , P2 , P3
+
+The Gantt Chart for the schedule is:
+P1
+
+P2
+
+0
+
+24
+
+P3
+27
+
+30
+
+ Waiting time for P1 = 0; P2 = 24; P3 = 27
+Arrival
+Time
+
+Start Time
+
+Waiting
+Time
+
+P1
+
+0
+
+0
+
+0
+
+P2
+
+0
+
+24
+
+24
+
+P3
+
+0
+
+27
+
+27
+
+ Average waiting time: (0 + 24 + 27)/3 = 17
+
+10
+
+FCFS Scheduling (Cont.)
+Suppose that the processes arrive in the order:
+P2 , P3 , P1
+ The Gantt chart for the schedule is:
+
+P2
+0
+
+P3
+3
+
+P1
+6
+
+30
+
+ Waiting time for P1 = 6; P2 = 0; P3 = 3
+ Average waiting time: (6 + 0 + 3)/3 = 3
+ Much better than previous case
+
+P1
+P2
+P3
+
+Arrival
+Time
+0
+0
+0
+
+Start Time
+6
+0
+3
+
+ Convoy effect - short process behind long process
+
+
+Consider one CPU-bound and many I/O-bound processes
+
+11
+
+Waiting
+Time
+6
+0
+3
+
+2. Shortest-Job-First (SJF) Scheduling
+ Associate with each process the length of its next CPU burst
+
+
+Use these lengths to schedule the process with the shortest
+time
+
+ SJF is optimal – gives minimum average waiting time for a given
+
+set of processes
+
+
+The difficulty is knowing the length of the next CPU request
+
+
+
+Could ask the user
+
+12
+
+Example of SJF
+ProcessArrival Time
+
+Burst Time
+
+P1
+
+0.0
+
+6
+
+P2
+
+2.0
+
+8
+
+P3
+
+4.0
+
+7
+
+P4
+
+5.0
+
+3
+
+ SJF scheduling chart
+
+P4
+0
+
+P1
+3
+
+P3
+
+P2
+
+9
+
+16
+
+24
+
+ SJF: Average waiting time = (3 + 16 + 9 + 0) / 4 = 7
+ FCFS: Average waiting time = (0 + 6 + 14 + 21) / 4 = 10.25 (Assume
+
+order of arrival: P1, P2, P3, P4)
+Arrival
+Time
+P1
+P2
+P3
+P4
+13
+
+0
+0
+0
+0
+
+SJF
+Start Waiting
+Time
+Time
+3
+3
+16
+16
+9
+9
+0
+0
+
+FCFS
+Start Waiting
+Time
+Time
+0
+0
+6
+6
+14
+14
+21
+21
+
+Determining Length of Next CPU Burst
+ Can only estimate the length – should be similar to the previous one
+
+
+Then pick process with shortest predicted next CPU burst
+
+ Can be done by using the length of previous CPU bursts, using
+
+exponential averaging
+1. t n = actual length of n th CPU burst
+2. t n +1 = predicted value for the next CPU burst
+3. a , 0 £ a £ 1
+4. Define :
+
+t n =1 = a t n + (1 - a )t n .
+
+ Commonly, α set to ½
+ Preemptive version called shortest-remaining-time-first
+
+14
+
+Prediction of the Length of the Next CPU Burst
+
+12
+τi 10
+8
+ti
+
+6
+4
+2
+time
+
+CPU burst (ti)
+"guess" (τi)
+
+10
+
+6
+
+4
+
+6
+
+4
+
+13
+
+13
+
+13
+
+8
+
+6
+
+6
+
+5
+
+9
+
+11
+
+12
+
+15
+
+…
+…
+
+3. Shortest-remaining-time-first (SRTF) Scheduling
+"
+
+Now we add the concepts of varying arrival times and preemption to the
+analysis
+ProcessA arri Arrival TimeT
+
+"
+
+Burst Time
+
+P1
+
+0
+
+8
+
+P2
+
+1
+
+4
+
+P3
+
+2
+
+9
+
+P4
+
+3
+
+5
+
+Preemptive SJF Gantt Chart
+P1
+0
+
+P2
+1
+
+P4
+5
+
+P1
+10
+
+P3
+17
+
+26
+
+"
+
+SRTF: Average waiting time = [(10-1)+(1-1)+(17-2)+(5-3)]/4 = 26/4 = 6.5
+
+"
+
+SJF: Average waiting time = [0+(8-1)+(17-2)+(12-3)]/4 = 31/4 = 7.75
+0
+1
+2
+3
+5
+10
+17
+26
+Time
+Proesses in System P (8) P (7) P (7) P (7) P (7) P (7) P (0)
+1
+1
+1
+1
+1
+1
+1
+& Their (Remaining)
+P2 (4) P2 (3) P2 (2) P2 (0)
+Time
+P3 (9) P3 (9) P3 (9) P3 (9) P3 (9) P3 (0)
+P4 (5) P4 (5) P4 (0)
+Process dispatched
+
+P1 (8) P2 (4) P2 (3) P2 (2) P4 (5) P1 (7) P3 (9)
+16
+
+4. Priority Scheduling
+ A priority number (integer) is associated with each process
+ The CPU is allocated to the process with the highest priority
+
+(smallest integer º highest priority)
+
+
+Preemptive
+
+
+
+Nonpreemptive
+
+ SJF is priority scheduling where priority is the inverse of predicted
+
+next CPU burst time
+ Problem º Starvation – low priority processes may never execute
+ Solution º Aging – as time progresses increase the priority of the
+
+process
+
+17
+
+Example of Priority Scheduling
+ProcessA arri Burst TimeT
+
+Priority
+
+P1
+
+10
+
+3
+
+P2
+
+1
+
+1
+
+P3
+
+2
+
+4
+
+P4
+
+1
+
+5
+
+P5
+
+5
+
+2
+
+ Priority scheduling Gantt Chart
+
+ Average waiting time = 8.2 msec
+
+Waiting time – amount of time a process has been waiting in the ready queue
+18
+
+5. Round Robin (RR)
+ Each process gets a small unit of CPU time (time quantum q),
+
+usually 10-100 milliseconds. After this time has elapsed, the
+process is preempted and added to the end of the ready queue.
+ If there are n processes in the ready queue and the time
+
+quantum is q, then each process gets 1/n of the CPU time in
+chunks of at most q time units at once. No process waits more
+than (n-1)q time units.
+ Timer interrupts every quantum to schedule next process
+ Performance
+
+
+q large Þ FIFO
+
+
+
+q small Þ q must be large with respect to context switch,
+otherwise overhead is too high
+
+19
+
+Example of RR with Time Quantum = 4
+Process
+
+Burst Time
+
+P1
+P2
+
+24
+3
+
+P3
+ The Gantt chart is:
+
+3
+
+P1
+0
+
+P2
+4
+
+P3
+7
+
+P1
+10
+
+P1
+14
+
+P1
+18
+
+P1
+22
+
+P1
+26
+
+ Typically, higher average turnaround than SJF, but better
+
+response
+ Average waiting time = [(10-4)+(4-0)+(7-0)]/3 = 5.66
+ q should be large compared to context switch time
+ q usually 10ms to 100ms, context switch < 10% time quantum
+
+Turnaround time – amount of time to execute a particular process =
+waiting time + response time
+20
+
+30
+
+Time Quantum and Context Switch Time
+
+21
+
+Turnaround Time Varies With The Time Quantum
+
+For schedule with q=5,
+process starts from time 1:
+P1
+0 1
+
+P2
+5
+
+P3
+8
+
+9
+
+Average turnaround time
+=(15+8+9+17)/4=12.25
+
+22
+
+P4
+
+P1 P4
+14 15
+
+17
+
+Multilevel Queue
+"
+
+Ready queue is partitioned into separate queues
+
+"
+
+Each queue has its own scheduling algorithm:
+
+"
+
+
+
+foreground – RR
+
+
+
+background – FCFS
+
+Scheduling must be done between the queues:
+
+
+Fixed priority scheduling; (i.e., serve all from
+foreground then from background). Possibility
+of starvation.
+
+
+
+Time slice – each queue gets a certain amount
+of CPU time which it can schedule amongst its
+processes; i.e., 80% to foreground in RR
+
+
+
+20% to background in FCFS
+
+23
+
+Multilevel Queue Scheduling
+
+24
+
+Multilevel Feedback Queue
+ A process can move between the various queues; aging can be
+
+implemented this way
+ Multilevel-feedback-queue scheduler defined by the following
+
+parameters:
+
+
+number of queues
+
+
+
+scheduling algorithms for each queue
+
+
+
+method used to determine when to upgrade a process
+
+
+
+method used to determine when to demote a process
+
+
+
+method used to determine which queue a process will enter
+when that process needs service
+
+25
+
+Example of Multilevel Feedback Queue
+ Three queues:
+
+
+Q0 – RR with time quantum 8
+milliseconds
+
+
+
+Q1 – RR time quantum 16 milliseconds
+
+
+
+Q2 – FCFS
+
+ Scheduling
+
+
+A new job enters queue Q0 which is
+served FCFS
+4 When it gains CPU, job receives 8
+
+milliseconds
+4 If it does not finish in 8
+
+milliseconds, job is moved to
+queue Q1
+
+
+At Q1 job is again served FCFS and
+receives 16 additional milliseconds
+4 If it still does not complete, it is
+
+preempted and moved to queue Q2
+
+26
+
+Multiple-Processor Scheduling
+ CPU scheduling more complex when multiple CPUs are
+
+available
+ Asymmetric multiprocessing – only one processor accesses the
+
+system data structures, alleviating the need for data sharing
+ Symmetric multiprocessing (SMP) – each processor is self-
+
+scheduling, all processes in common ready queue, or each has
+its own private queue of ready processes
+
+
+Currently, most common
+
+
+
+Need to keep all CPUs loaded for efficiency
+
+
+
+Load balancing attempts to keep workload evenly
+distributed
+
+27
+
+Multicore Processors
+ Recent trend to place multiple processor cores on same
+
+physical chip
+ Faster and consumes less power
+ Multiple threads per core also growing
+
+
+Takes advantage of memory stall to make progress on
+another thread while memory retrieve happens
+
+28
+
+
+================================================================
+
+
+
+
+Chapter 9: Main Memory
+
+Operating System Concepts – 10th Edition
+
+Silberschatz, Galvin and Gagne ©2018
+
+Memory Management
+ Background
+ Contiguous Memory Allocation
+ Paging
+ Swapping
+
+2
+
+Objectives
+ To provide a detailed description of various ways of
+
+organizing memory hardware
+ To know swapping, TLBs, and memory allocation
+ To discuss various memory-management techniques,
+
+including paging
+
+3
+
+Background
+ Program must be brought (from disk) into memory and
+
+placed within a process for it to be run
+ Main memory and registers are only storage, CPU can
+
+access directly
+ Memory unit only sees a stream of addresses + read
+
+requests, or address + data and write requests
+ Register access in one CPU clock (or less)
+ Cache sits between main memory and CPU registers
+
+https://www.youtube.com/watch?v=p3q5zWCw8J4
+
+4
+
+Memory Management Basics
+ Don’t have infinite RAM
+ Do have a memory hierarchy
+
+Cache (fast)
+
+
+
+Main(medium)
+
+
+
+Disk(slow)
+
+5
+5
+
+Base and Limit Registers
+ A pair of base and limit registers define the logical address space
+ CPU must check every memory access generated in user mode to
+
+be sure it is between base and limit for that user
+
+6
+
+Binding of Instructions and Data to Memory
+ Address binding of instructions and data to memory addresses
+
+can happen at three different stages
+
+
+Compile time: If memory location known a priori, absolute
+code can be generated; must recompile code if starting
+location changes
+
+
+
+Load time: Must generate relocatable code if memory
+location is not known at compile time
+
+
+
+Execution time: Binding delayed until run time if the
+process can be moved during its execution from one memory
+segment to another
+4 Need hardware support for address maps (e.g., base and
+
+limit registers)
+
+7
+
+Multistep Processing of a User Program
+
+8
+
+Logical vs. Physical Address Space
+ Logical address – generated by the CPU; also referred to as
+
+virtual address
+ Physical address – address seen by the memory unit
+ Logical and physical addresses are the same in compile-time
+
+and load-time address-binding schemes; logical (virtual) and
+physical addresses differ in execution-time address-binding
+scheme
+ Logical address space is the set of all logical addresses
+
+generated by a program
+ Physical address space is the set of all physical addresses
+
+generated by a program
+
+9
+
+Memory-Management Unit (MMU)
+ Hardware device that at run time maps virtual to physical
+
+address
+
+10
+
+Dynamic Linking
+ Static linking – system libraries and program code combined by
+
+the loader into the binary program image
+ Dynamic linking –linking postponed until execution time, used
+
+with system libraries, such as the standard C language library
+ Without this facility, each program on a system must include a
+
+copy of its language library (or at least the routines referenced by
+the program)
+ Dynamic linking is particularly useful for libraries
+ System also known as shared libraries
+
+11
+
+Memory Allocation
+ Main memory must support both OS and user processes
+ Limited resource, must allocate efficiently
+ Contiguous allocation is one early method
+ Main memory usually into two partitions:
+
+
+One for the operating system and one for the user processes
+
+
+
+Many operating systems (including Linux and Windows) place
+the operating system in high memory
+
+
+
+Each process contained in single contiguous section of
+memory
+
+12
+
+Memory allocation
+ Multiple-partition allocation
+
+
+Degree of multiprogramming limited by number of partitions
+
+
+
+Variable-partition sizes for efficiency (sized to a given process’ needs)
+
+
+
+Hole – block of available memory; holes of various size are scattered
+throughout memory
+
+
+
+When a process arrives, it is allocated memory from a hole large enough to
+accommodate it
+
+
+
+Process exiting frees its partition, adjacent free partitions combined
+
+
+
+Operating system maintains information about:
+a) allocated partitions b) free partitions (hole)
+
+13
+
+Dynamic Storage-Allocation Problem
+How to satisfy a request of size n from a list of free holes?
+ First-fit: Allocate the first hole that is big enough, fast
+
+ Best-fit: Allocate the smallest hole that is big enough; must
+
+search entire list, unless ordered by size
+
+
+Produces the smallest leftover hole
+
+ Worst-fit: Allocate the largest hole; must also search entire list
+
+
+Produces the largest leftover hole
+
+First-fit and best-fit better than worst-fit in terms of speed and storage
+utilization
+
+14
+
+Fragmentation
+ External Fragmentation – total memory space exists to
+
+satisfy a request, but it is not contiguous
+ Internal Fragmentation – allocated memory may be slightly
+
+larger than requested memory; this size difference is memory
+internal to a partition, but not being used
+
+15
+
+Fragmentation (Cont.)
+ Reduce external fragmentation by compaction
+
+
+Shuffle memory contents to place all free memory together
+in one large block
+
+
+
+Compaction is possible only if relocation is dynamic, and is
+done at execution time
+
+16
+
+Paging
+ Physical address space of a process can be noncontiguous;
+
+process is allocated physical memory whenever the latter is
+available
+
+
+Avoids external fragmentation
+
+
+
+Avoids problem of varying sized memory chunks
+
+ Divide physical memory into fixed-sized blocks called frames
+
+
+Size is power of 2, between 512 bytes and 16 Mbytes
+
+ Divide logical memory into blocks of same size called pages
+ Keep track of all free frames
+ To run a program of size N pages, need to find N free frames and
+
+load program
+ Set up a page table to translate logical to physical addresses
+ Backing store likewise split into pages
+ Still have Internal fragmentation
+
+17
+
+Address Translation Scheme
+ Address generated by CPU is divided into:
+
+
+Page number (p) – used as an index into a page table which
+contains base address of each page in physical memory
+
+
+
+Page offset (d) – combined with base address to define the
+physical memory address that is sent to the memory unit
+
+
+
+page number
+
+page offset
+
+p
+
+d
+
+m -n
+
+n
+
+For given logical address space 2m and page size 2n
+
+18
+
+Paging Hardware
+
+19
+
+Paging details
+
+20
+
+Paging
+With this scheme, two
+memory accesses are
+needed to access data (one
+for the page-table entry and
+one for the actual data)
+
+21
+
+Implementation of Page Table
+ Page table is kept in main memory
+ Use of a special fast-lookup hardware cache called
+
+associative memory or translation look-aside buffers
+(TLBs)
+ TLBs typically small (64 to 1,024 entries)
+ On a TLB miss, value is loaded into the TLB for faster access
+
+next time
+
+
+Replacement policies must be considered
+
+
+
+Some entries can be wired down for permanent fast
+access
+
+22
+
+Swapping
+ A process can be swapped temporarily out of memory to a
+
+backing store, and then brought back into memory for continued
+execution
+ Total physical memory space of processes can exceed
+physical memory
+
+ Backing store – fast disk large enough to accommodate copies
+
+of all memory images for all users; must provide direct access to
+these memory images
+ Roll out, roll in – swapping variant used for priority-based
+
+scheduling algorithms; lower-priority process is swapped out so
+higher-priority process can be loaded and executed
+
+ Major part of swap time is transfer time; total transfer time is
+
+directly proportional to the amount of memory swapped
+
+ System maintains a ready queue of ready-to-run processes
+
+which have memory images on disk
+23
+
+Schematic View of Swapping
+
+24
+
+
+
+
+
+
+Summarize Chapter 4 (Deadlocks):
+What are the 4 conditions that must be met for a deadlock to occur?
+    - Mutual exclusion
+    - Hold and wait
+    - No preemption
+    - Circular wait
+
+What are the 4 methods for preventing deadlocks?
+    - Pretend that deadlocks cannot occur
+    - Prevent mutual exclusion
+    - Prevent hold and wait
+    

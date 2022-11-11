@@ -103,8 +103,9 @@ impl EastVillage {
         // generate a random number between 1 and 5 to represent the time it takes to cross the road
         let sleep_time = rand::thread_rng().gen_range(1..6);
         println!("East Village took {} seconds to cross the road", sleep_time);
-        // make the thread sleep for the random time
+        // complete a random action
         self.complete_random_action();
+        // make the thread sleep for the random time
         thread::sleep(Duration::from_secs(sleep_time));
     }
     // copy constructor for the EastVillage
@@ -114,8 +115,11 @@ impl EastVillage {
         }
     }
     fn complete_random_action(&self) {
+        // create a vector of random actions
         let random_actions: [&str; 3] = ["eating a donut", "drinking a coffee", "taking a nap"];
+        // generate a random number between 0 and 2 to represent the random action
         let random_action = rand::thread_rng().gen_range(0..3);
+        // print the random action
         println!("West Village is {}", random_actions[random_action as usize]);
     }
 }
@@ -128,8 +132,9 @@ impl WestVillage {
         // sleep for a random period between one and five seconds to represent the time it takes to cross the road
         let sleep_time = rand::thread_rng().gen_range(1..6);
         println!("West Village took {} seconds to cross the road", sleep_time);
-        // make the thread sleep for the random time
+        // complete a random action
         self.complete_random_action();
+        // make the thread sleep for the random time
         thread::sleep(Duration::from_secs(sleep_time));
     }
     // copy constructor for the WestVillage
@@ -139,8 +144,11 @@ impl WestVillage {
         }
     }
     fn complete_random_action(&self) {
+        // create a vector of random actions
         let random_actions: [&str; 3] = ["eating a donut", "drinking a coffee", "taking a nap"];
+        // generate a random number between 0 and 2 to represent the random action
         let random_action = rand::thread_rng().gen_range(0..3);
+        // print the random action
         println!("West Village is {}", random_actions[random_action as usize]);
     }
 }

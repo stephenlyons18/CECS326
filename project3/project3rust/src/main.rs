@@ -41,37 +41,48 @@ use std::thread;
 // import rand
 use rand::Rng;
 
-
-
+// define the struct of the RoadController which contains ONE mutex lock and the two villages
 struct RoadController {
     road: Arc<Mutex<()>>,
     east: EastVillage,
     west: WestVillage,
 }
 impl RoadController {
+    // RoadController constructor
     fn new() -> RoadController {
+        // create a new mutex lock to be shared by the two villages
         let road = Arc::new(Mutex::new(()));
+        // create the two villages and pass the mutex lock to them
         let east = EastVillage { road: road.clone() };
         let west = WestVillage { road: road.clone() };
+        // return the RoadController as the new constructed object
         RoadController {
             road: road,
             east: east,
             west: west,
         }
     }
+    //
     pub fn cross_road(&self, village: &str) {
+        // based on the village name, lock the mutex lock
         match village {
             "east" => {
-                let road = self.road.lock().unwrap();
+                // use a guard to make sure the mutex lock is unlocked before it begins to lock again
+                let _guard = self.road.lock().unwrap();
+                // lock the mutex lock execute the crossing road action for the east village
                 self.east.cross_road();
             }
             "west" => {
-                let road = self.road.lock().unwrap();
+                // use a guard to make sure the mutex lock is unlocked before it begins to lock again
+                let _guard = self.road.lock().unwrap();
+                // lock the mutex lock execute the crossing road action for the west village
                 self.west.cross_road();
             }
+            // otherwise, print the error message since the village name is not valid
             _ => println!("Invalid village"),
         }
     }
+    // copy constructor for the RoadController
     pub fn clone(&self) -> RoadController {
         RoadController {
             road: self.road.clone(),
@@ -80,20 +91,23 @@ impl RoadController {
         }
     }
 }
+// define the struct of the EastVillage which contains the mutex lock created by the RoadController
 struct EastVillage {
     road: Arc<Mutex<()>>,
 }
+
+
 // implement EastVillage and WestVillage classes which both have access to the same road and if the road is occupied, the thread will wait until the road is free
 impl EastVillage {
-    fn new(road: Arc<Mutex<()>>) -> EastVillage {
-        EastVillage { road: road }
-    }
+    // cross_road function which will be called by the RoadController to cross the road and sleep for a random time
     pub fn cross_road(&self) {
-        // sleep for a random period between one and 5
+        // generate a random number between 1 and 5 to represent the time it takes to cross the road
         let sleep_time = rand::thread_rng().gen_range(1..6);
         println!("East Village took {} seconds to cross the road", sleep_time);
+        // make the thread sleep for the random time
         thread::sleep(Duration::from_secs(sleep_time));
     }
+    // copy constructor for the EastVillage
     pub fn clone(&self) -> EastVillage {
         EastVillage {
             road: self.road.clone(),
@@ -104,15 +118,15 @@ struct WestVillage {
     road: Arc<Mutex<()>>,
 }
 impl WestVillage {
-    fn new(road: Arc<Mutex<()>>) -> WestVillage {
-        WestVillage { road: road }
-    }
+    // cross_road function which will be called by the RoadController to cross the road and sleep for a random time
     pub fn cross_road(&self) {
-        // sleep for a random period between one and 5
+        // sleep for a random period between one and five seconds to represent the time it takes to cross the road
         let sleep_time = rand::thread_rng().gen_range(1..6);
         println!("West Village took {} seconds to cross the road", sleep_time);
+        // make the thread sleep for the random time
         thread::sleep(Duration::from_secs(sleep_time));
     }
+    // copy constructor for the WestVillage
     pub fn clone(&self) -> WestVillage {
         WestVillage {
             road: self.road.clone(),
@@ -121,33 +135,42 @@ impl WestVillage {
 }
 
 fn main() {
+    // initialize a timer to measure the time it takes to execute the program
     let time = Instant::now();
+
+    // create a new RoadController
     let road_controller = RoadController::new();
+    // create a vector to store all the threads that will be created
     let mut handles = vec![];
-    let mut villageCount = 0;
 
     // create 10 threads
     for _ in 0..10 {
+        // clone the RoadController to be passed to the thread
         let road_controller = road_controller.clone();
+        // create a new thread
         let handle = thread::spawn(move || {
             // randomly choose a village
             let village = rand::thread_rng().gen_range(0..2);
+
             match village {
                 0 => {
+                    // if the village is 0, then the east village will cross the road
                     road_controller.cross_road("east");
                 }
                 1 => {
+                    // otherwise, the west village will cross the road
                     road_controller.cross_road("west");
                 }
                 _ => println!("Invalid village"),
             }
         });
+        // push the thread to the vector of threads
         handles.push(handle);
     }
+    // join all the threads to the main thread such that the main thread will wait until all the threads are finished
     for handle in handles {
         handle.join().unwrap();
     }
+    // print the time it takes to execute the program
     println!("Time elapsed is: {:?}", time.elapsed());
 }
-
-

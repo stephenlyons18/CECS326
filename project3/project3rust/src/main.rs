@@ -96,7 +96,6 @@ struct EastVillage {
     road: Arc<Mutex<()>>,
 }
 
-
 // implement EastVillage and WestVillage classes which both have access to the same road and if the road is occupied, the thread will wait until the road is free
 impl EastVillage {
     // cross_road function which will be called by the RoadController to cross the road and sleep for a random time
@@ -105,6 +104,7 @@ impl EastVillage {
         let sleep_time = rand::thread_rng().gen_range(1..6);
         println!("East Village took {} seconds to cross the road", sleep_time);
         // make the thread sleep for the random time
+        self.complete_random_action();
         thread::sleep(Duration::from_secs(sleep_time));
     }
     // copy constructor for the EastVillage
@@ -112,6 +112,11 @@ impl EastVillage {
         EastVillage {
             road: self.road.clone(),
         }
+    }
+    fn complete_random_action(&self) {
+        let random_actions: [&str; 3] = ["eating a donut", "drinking a coffee", "taking a nap"];
+        let random_action = rand::thread_rng().gen_range(0..3);
+        println!("West Village is {}", random_actions[random_action as usize]);
     }
 }
 struct WestVillage {
@@ -124,6 +129,7 @@ impl WestVillage {
         let sleep_time = rand::thread_rng().gen_range(1..6);
         println!("West Village took {} seconds to cross the road", sleep_time);
         // make the thread sleep for the random time
+        self.complete_random_action();
         thread::sleep(Duration::from_secs(sleep_time));
     }
     // copy constructor for the WestVillage
@@ -131,6 +137,11 @@ impl WestVillage {
         WestVillage {
             road: self.road.clone(),
         }
+    }
+    fn complete_random_action(&self) {
+        let random_actions: [&str; 3] = ["eating a donut", "drinking a coffee", "taking a nap"];
+        let random_action = rand::thread_rng().gen_range(0..3);
+        println!("West Village is {}", random_actions[random_action as usize]);
     }
 }
 
@@ -151,7 +162,6 @@ fn main() {
         let handle = thread::spawn(move || {
             // randomly choose a village
             let village = rand::thread_rng().gen_range(0..2);
-
             match village {
                 0 => {
                     // if the village is 0, then the east village will cross the road

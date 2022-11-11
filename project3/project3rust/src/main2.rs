@@ -1,3 +1,6 @@
+// THIS VERSION OF THE FILE HAS ERRORS
+// DO NOT USE THIS VERSION OF THE FILE FOR THE RUNNING OR SUBMISSION OF THE ASSIGNMENT
+
 // 1. Problem Description
 // Consider that has this kind of scenario: two villages (Eastvillage and Westvillage) only have a
 // single-lane road for the connection. People from these two villages only can use this road for
@@ -34,120 +37,104 @@
 // 8) Provide sufficient comments in your code to help the TA understand your code. This is
 // important for you to get at least partial credit in case your submitted code does not work properly.
 use std::time::Duration;
-use std::time::Instant;
 
 use std::sync::{Arc, Mutex};
 use std::thread;
 // import rand
 use rand::Rng;
-
-
+struct EastVillage {
+    road: Mutex<()>,
+}
+struct WestVillage {
+    road: Mutex<()>,
+}
+impl EastVillage {
+    fn new() -> EastVillage {
+        EastVillage {
+            road: Mutex::new(()),
+        }
+    }
+    fn cross_road(&self) {
+        let _guard = self.road.lock().unwrap();
+        let sleep_time = rand::thread_rng().gen_range(0..4);
+        thread::sleep(Duration::from_secs(sleep_time));
+        println!(
+            "East Village people cross the road for {} seconds",
+            sleep_time
+        );
+    }
+    fn clone(&self) -> EastVillage {
+        EastVillage {
+            road: Mutex::new(()),
+        }
+    }
+}
+impl WestVillage {
+    fn new() -> WestVillage {
+        WestVillage {
+            road: Mutex::new(()),
+        }
+    }
+    fn cross_road(&self) {
+        let _guard = self.road.lock().unwrap();
+        let sleep_time = rand::thread_rng().gen_range(0..4);
+        thread::sleep(Duration::from_secs(sleep_time));
+        println!(
+            "West Village people cross the road for {} seconds",
+            sleep_time
+        );
+    }
+    fn clone(&self) -> WestVillage {
+        WestVillage {
+            road: Mutex::new(()),
+        }
+    }
+}
 
 struct RoadController {
-    road: Arc<Mutex<()>>,
-    east: EastVillage,
-    west: WestVillage,
+    east: Arc<EastVillage>,
+    west: Arc<WestVillage>,
 }
 impl RoadController {
-    fn new() -> RoadController {
-        let road = Arc::new(Mutex::new(()));
-        let east = EastVillage { road: road.clone() };
-        let west = WestVillage { road: road.clone() };
-        RoadController {
-            road: road,
-            east: east,
-            west: west,
-        }
+    fn new(east: Arc<EastVillage>, west: Arc<WestVillage>) -> RoadController {
+        RoadController { east, west }
     }
-    pub fn cross_road(&self, village: &str) {
-        match village {
-            "east" => {
-                let road = self.road.lock().unwrap();
-                self.east.cross_road();
-            }
-            "west" => {
-                let road = self.road.lock().unwrap();
-                self.west.cross_road();
-            }
-            _ => println!("Invalid village"),
-        }
+    fn cross_road(&self) {
+        // create a new thread for east village and west village
+        let east = self.east.clone();
+        let west = self.west.clone();
+        // create a new thread for east village which will cross the road
+        let east_thread = thread::spawn(move || {
+            east.cross_road();
+        });
+        // create a new thread for west village which will cross the road
+        let west_thread = thread::spawn(move || {
+            west.cross_road();
+        });
+
+        east_thread.join().unwrap();
+        west_thread.join().unwrap();
     }
-    pub fn clone(&self) -> RoadController {
+    fn clone(&self) -> RoadController {
         RoadController {
-            road: self.road.clone(),
             east: self.east.clone(),
             west: self.west.clone(),
         }
     }
 }
-struct EastVillage {
-    road: Arc<Mutex<()>>,
-}
-// implement EastVillage and WestVillage classes which both have access to the same road and if the road is occupied, the thread will wait until the road is free
-impl EastVillage {
-    fn new(road: Arc<Mutex<()>>) -> EastVillage {
-        EastVillage { road: road }
-    }
-    pub fn cross_road(&self) {
-        // sleep for a random period between one and 5
-        let sleep_time = rand::thread_rng().gen_range(1..6);
-        println!("East Village took {} seconds to cross the road", sleep_time);
-        thread::sleep(Duration::from_secs(sleep_time));
-    }
-    pub fn clone(&self) -> EastVillage {
-        EastVillage {
-            road: self.road.clone(),
-        }
-    }
-}
-struct WestVillage {
-    road: Arc<Mutex<()>>,
-}
-impl WestVillage {
-    fn new(road: Arc<Mutex<()>>) -> WestVillage {
-        WestVillage { road: road }
-    }
-    pub fn cross_road(&self) {
-        // sleep for a random period between one and 5
-        let sleep_time = rand::thread_rng().gen_range(1..6);
-        println!("West Village took {} seconds to cross the road", sleep_time);
-        thread::sleep(Duration::from_secs(sleep_time));
-    }
-    pub fn clone(&self) -> WestVillage {
-        WestVillage {
-            road: self.road.clone(),
-        }
-    }
-}
-
 fn main() {
-    let time = Instant::now();
-    let road_controller = RoadController::new();
-    let mut handles = vec![];
-    let mut villageCount = 0;
-
-    // create 10 threads
+    let east = Arc::new(EastVillage::new());
+    let west = Arc::new(WestVillage::new());
+    let road_controller = RoadController::new(east, west);
+    let mut threads = vec![];
     for _ in 0..10 {
         let road_controller = road_controller.clone();
-        let handle = thread::spawn(move || {
-            // randomly choose a village
-            let village = rand::thread_rng().gen_range(0..2);
-            match village {
-                0 => {
-                    road_controller.cross_road("east");
-                }
-                1 => {
-                    road_controller.cross_road("west");
-                }
-                _ => println!("Invalid village"),
-            }
+        let thread = thread::spawn(move || {
+            road_controller.cross_road();
         });
-        handles.push(handle);
+        threads.push(thread);
     }
-    for handle in handles {
-        handle.join().unwrap();
+    for thread in threads {
+        thread.join().unwrap();
     }
-    println!("Time elapsed is: {:?}", time.elapsed());
 }
-
-

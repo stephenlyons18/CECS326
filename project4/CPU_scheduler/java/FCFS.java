@@ -7,14 +7,11 @@ import java.util.*;
 // import queue
 import java.util.Queue;
 
-//Your code here
-
-public class FCFS {
-    public static void run(List<Task> tasks) {
-        // implement FCFS scheduling algorithm using a queue
-        
+public class FCFS implements Algorithm {
+    public FCFS(List<Task> queue) {
+        // create a queue of tasks
         Queue<Task> taskQueue = new LinkedList<Task>();
-        for (Task task : tasks) {
+        for (Task task : queue) {
             taskQueue.add(task);
         }
         while (!taskQueue.isEmpty()) {
